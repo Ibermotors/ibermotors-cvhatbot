@@ -1,7 +1,7 @@
-// v5 - 23-04-2026
+// v6 - 23-04-2026
 (function() {
 
-  var API_KEY = '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';
+  var API_KEY = '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';
 
   var SYSTEM_PROMPT = 'És um assistente virtual da Ibermotors, um stand de automóveis usados em Lisboa. O teu objetivo é ajudar o utilizador a encontrar o carro ideal ou a vender o seu carro, e capturar os seus dados de contacto. Sê simpático, direto e profissional. Faz perguntas para entender as necessidades: marca, modelo, orçamento, quilómetros, ano. Fala sempre em português europeu (de Portugal). Não uses emojis em excesso. Quando o utilizador mostrar interesse, encoraja-o a deixar uma mensagem detalhada para que a equipa o contacte.';
 
@@ -160,7 +160,7 @@
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1000,
         system: sys,
         messages: history
