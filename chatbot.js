@@ -1,7 +1,7 @@
-// v4 - 23-04-2026
+// v5 - 23-04-2026
 (function() {
 
-  var API_KEY = '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';
+  var API_KEY = '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';
 
   var SYSTEM_PROMPT = 'És um assistente virtual da Ibermotors, um stand de automóveis usados em Lisboa. O teu objetivo é ajudar o utilizador a encontrar o carro ideal ou a vender o seu carro, e capturar os seus dados de contacto. Sê simpático, direto e profissional. Faz perguntas para entender as necessidades: marca, modelo, orçamento, quilómetros, ano. Fala sempre em português europeu (de Portugal). Não uses emojis em excesso. Quando o utilizador mostrar interesse, encoraja-o a deixar uma mensagem detalhada para que a equipa o contacte.';
 
