@@ -1,0 +1,192 @@
+<script>
+(function() {
+
+  var API_KEY = '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';
+
+  var SYSTEM_PROMPT = 'És um assistente virtual da Ibermotors, um stand de automóveis usados em Lisboa. O teu objetivo é ajudar o utilizador a encontrar o carro ideal ou a vender o seu carro, e capturar os seus dados de contacto. Sê simpático, direto e profissional. Faz perguntas para entender as necessidades: marca, modelo, orçamento, quilómetros, ano. Fala sempre em português europeu (de Portugal). Não uses emojis em excesso. Quando o utilizador mostrar interesse, encoraja-o a deixar uma mensagem detalhada para que a equipa o contacte.';
+
+  var history  = [];
+  var userData = {};
+  var isOpen   = false;
+
+  function init() {
+    var css = [
+      '#aa-btn{position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;background:#E24B4A;border:none;cursor:pointer;font-size:26px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:2147483646;display:flex;align-items:center;justify-content:center}',
+      '#aa-btn:hover{background:#c93d3c}',
+      '#aa-box{position:fixed;bottom:96px;right:24px;width:360px;height:520px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.2);z-index:2147483647;display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}',
+      '#aa-box *{box-sizing:border-box}',
+      '#aa-head{padding:14px 16px;background:#1a1a2e;display:flex;align-items:center;gap:10px;flex-shrink:0}',
+      '#aa-head-ico{width:34px;height:34px;border-radius:50%;background:#E24B4A;display:flex;align-items:center;justify-content:center;font-size:16px}',
+      '#aa-head-name{font-size:14px;font-weight:600;color:#fff;margin:0}',
+      '#aa-head-status{font-size:11px;color:#9fefbb;margin:0;display:flex;align-items:center;gap:4px}',
+      '#aa-head-status:before{content:"";width:6px;height:6px;border-radius:50%;background:#5DCAA5;display:inline-block}',
+      '#aa-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#f6f6f8}',
+      '.aam{max-width:85%;display:flex;flex-direction:column;gap:2px}',
+      '.aam.b{align-self:flex-start}',
+      '.aam.u{align-self:flex-end}',
+      '.aam-bub{padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.5}',
+      '.aam.b .aam-bub{background:#fff;border:1px solid #e5e5e5;color:#111;border-bottom-left-radius:4px}',
+      '.aam.u .aam-bub{background:#E24B4A;color:#fff;border-bottom-right-radius:4px}',
+      '.aam-t{font-size:10px;color:#aaa;padding:0 3px}',
+      '.aam.u .aam-t{text-align:right}',
+      '.aat{display:flex;gap:4px;padding:8px 12px;background:#fff;border:1px solid #e5e5e5;border-radius:14px;border-bottom-left-radius:4px;width:fit-content}',
+      '.aat span{width:5px;height:5px;border-radius:50%;background:#bbb;animation:aab 1.2s infinite}',
+      '.aat span:nth-child(2){animation-delay:.2s}',
+      '.aat span:nth-child(3){animation-delay:.4s}',
+      '@keyframes aab{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}',
+      '#aa-form{padding:10px 12px;border-top:1px solid #ebebeb;background:#fff;flex-shrink:0}',
+      '#aa-fields{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}',
+      '#aa-fields input{font-size:12.5px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;color:#111;width:100%;outline:none}',
+      '#aa-fields input:focus{border-color:#E24B4A}',
+      '#aa-go{width:100%;padding:9px;background:#E24B4A;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}',
+      '#aa-go:hover{background:#c93d3c}',
+      '#aa-row{display:none;gap:7px;align-items:center}',
+      '#aa-inp{flex:1;font-size:13px;padding:7px 12px;border:1px solid #ddd;border-radius:20px;background:#fafafa;color:#111;outline:none}',
+      '#aa-inp:focus{border-color:#E24B4A}',
+      '#aa-snd{width:34px;height:34px;border-radius:50%;background:#E24B4A;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+      '#aa-snd:hover{background:#c93d3c}',
+      '#aa-snd svg{width:14px;height:14px;fill:#fff}'
+    ].join('');
+
+    var s = document.createElement('style');
+    s.textContent = css;
+    document.head.appendChild(s);
+
+    var btn = document.createElement('button');
+    btn.id = 'aa-btn';
+    btn.innerHTML = '&#x1F697;';
+    btn.title = 'Falar com AutoAssistente';
+    document.body.appendChild(btn);
+
+    var box = document.createElement('div');
+    box.id = 'aa-box';
+    box.innerHTML = [
+      '<div id="aa-head">',
+        '<div id="aa-head-ico">&#x1F697;</div>',
+        '<div>',
+          '<p id="aa-head-name">AutoAssistente Ibermotors</p>',
+          '<p id="aa-head-status">Online agora</p>',
+        '</div>',
+      '</div>',
+      '<div id="aa-msgs"></div>',
+      '<div id="aa-form">',
+        '<div id="aa-fields">',
+          '<input id="aa-nome"  placeholder="O seu nome"  type="text" />',
+          '<input id="aa-email" placeholder="Email"        type="email" />',
+          '<input id="aa-tel"   placeholder="Telefone"     type="tel" />',
+          '<button id="aa-go">Come&#xE7;ar conversa &#x2192;</button>',
+        '</div>',
+        '<div id="aa-row">',
+          '<input id="aa-inp" placeholder="Escreva aqui..." />',
+          '<button id="aa-snd"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>',
+        '</div>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(box);
+
+    btn.addEventListener('click', function() {
+      isOpen = !isOpen;
+      box.style.display = isOpen ? 'flex' : 'none';
+      btn.innerHTML = isOpen ? '&#x2715;' : '&#x1F697;';
+    });
+
+    document.getElementById('aa-go').addEventListener('click', submitLead);
+    document.getElementById('aa-snd').addEventListener('click', sendMsg);
+    document.getElementById('aa-inp').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') sendMsg();
+    });
+  }
+
+  function getTime() {
+    return new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function addMsg(text, who) {
+    var msgs = document.getElementById('aa-msgs');
+    var d = document.createElement('div');
+    d.className = 'aam ' + (who === 'bot' ? 'b' : 'u');
+    d.innerHTML = '<div class="aam-bub">' + (who === 'user' ? esc(text) : text) + '</div>'
+                + '<div class="aam-t">' + getTime() + '</div>';
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    var msgs = document.getElementById('aa-msgs');
+    var w = document.createElement('div');
+    w.className = 'aam b';
+    w.id = 'aa-tw';
+    w.innerHTML = '<div class="aat"><span></span><span></span><span></span></div>';
+    msgs.appendChild(w);
+    msgs.scrollTop = msgs.scrollHeight;
+    return w;
+  }
+
+  function submitLead() {
+    var nome  = (document.getElementById('aa-nome').value  || '').trim();
+    var email = (document.getElementById('aa-email').value || '').trim();
+    var tel   = (document.getElementById('aa-tel').value   || '').trim();
+    if (!nome || !email || !tel) { alert('Por favor preencha todos os campos.'); return; }
+    userData = { nome: nome, email: email, tel: tel };
+    if (window.dataLayer) {
+      window.dataLayer.push({ event: 'aa_lead_captured', aa_nome: nome, aa_email: email, aa_tel: tel });
+    }
+    document.getElementById('aa-fields').style.display = 'none';
+    document.getElementById('aa-row').style.display    = 'flex';
+    var msg = 'Ol\u00e1 ' + esc(nome) + '! \uD83D\uDC4B Bem-vindo(a) \u00e0 Ibermotors. Como posso ajud\u00e1-lo(a) hoje? Est\u00e1 \u00e0 procura de comprar um carro ou pretende vender o seu?';
+    addMsg(msg, 'bot');
+    history.push({ role: 'assistant', content: msg });
+  }
+
+  function sendMsg() {
+    var inp  = document.getElementById('aa-inp');
+    var text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    addMsg(text, 'user');
+    history.push({ role: 'user', content: text });
+    var tw = showTyping();
+    var sys = SYSTEM_PROMPT + ' O utilizador chama-se ' + userData.nome + ', email: ' + userData.email + ', telefone: ' + userData.tel + '.';
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: sys,
+        messages: history
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      tw.remove();
+      var reply = data.content && data.content[0] ? data.content[0].text : 'Desculpe, ocorreu um erro. Tente novamente.';
+      addMsg(esc(reply), 'bot');
+      history.push({ role: 'assistant', content: reply });
+      if (window.dataLayer) {
+        window.dataLayer.push({ event: 'aa_message_sent', aa_nome: userData.nome });
+      }
+    })
+    .catch(function() {
+      tw.remove();
+      addMsg('Erro de liga\u00e7\u00e3o. Tente novamente.', 'bot');
+    });
+  }
+
+  if (document.body) {
+    init();
+  } else {
+    document.addEventListener('DOMContentLoaded', init);
+  }
+
+})();
+</script>
