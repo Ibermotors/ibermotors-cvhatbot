@@ -182,10 +182,12 @@
     });
   }
 
-  if (document.body) {
-    init();
-  } else {
-    document.addEventListener('DOMContentLoaded', init);
-  }
+  setTimeout(function() {
+    if (document.body) {
+      init();
+    } else {
+      document.addEventListener('DOMContentLoaded', init);
+    }
+  }, 1000);
 
 })();
